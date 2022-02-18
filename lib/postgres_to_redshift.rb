@@ -81,7 +81,8 @@ class PostgresToRedshift
   end
 
   def s3
-    @s3 ||= AWS::S3.new(access_key_id: ENV['S3_DATABASE_EXPORT_ID'], secret_access_key: ENV['S3_DATABASE_EXPORT_KEY'])
+    AWS.config(:access_key_id => ENV['S3_DATABASE_EXPORT_ID'], :secret_access_key => ENV['S3_DATABASE_EXPORT_KEY'])
+    @s3 ||= AWS::S3.new
   end
 
   def bucket
