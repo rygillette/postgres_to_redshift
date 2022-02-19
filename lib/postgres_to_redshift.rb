@@ -173,9 +173,9 @@ class PostgresToRedshift
     puts "Uploading #{table.target_table_name}.#{chunk}"
     object_name = "export/#{table.target_table_name}.psv.gz.#{chunk}"
     if object_uploaded?(ENV['S3_DATABASE_EXPORT_BUCKET'], object_name, buffer)
-      puts "Object '#{object_name}' uploaded to bucket '#{bucket_name}'."
+      puts "Object '#{object_name}' uploaded."
     else
-      puts "Object '#{object_name}' uploaded to bucket '#{bucket_name}'. " \
+      puts "Object '#{object_name}' uploaded. " \
         'Program will stop.'
       exit 1
     end
