@@ -92,13 +92,54 @@ class PostgresToRedshift
     ).contents
   end
 
+  def object_uploaded?(bucket_name, object_key, object_content)
+    response = s3.put_object(
+      bucket: bucket_name,
+      key: object_key,
+      body: object_content
+    )
+    if response.etag
+      return true
+    else
+      return false
+    end
+  rescue StandardError => e
+    puts "Error uploading object: #{e.message}"
+    return false
+  end
+
+  def object_deleted?(bucket_name, object_key)
+    response = s3.delete_objects(
+      bucket: bucket_name,
+      delete: {
+        objects: [
+          {
+            key: object_key
+          }
+        ]
+      }
+    )
+    if response.deleted.count == 1
+      return true
+    else
+      return false
+    end
+  rescue StandardError => e
+    puts "Error deleting object: #{e.message}"
+    return false
+  end
+
   def copy_table(table)
     tmpfile = Tempfile.new("psql2rs")
     zip = Zlib::GzipWriter.new(tmpfile)
     chunksize = 5 * GIGABYTE # uncompressed
     chunk = 1
-    puts bucket_objects
-    bucket_objects.with_prefix("export/#{table.target_table_name}.psv.gz").delete_all
+    object_name = "export/#{table.target_table_name}.psv.gz"
+    if object_deleted?(ENV['S3_DATABASE_EXPORT_BUCKET'], object_name)
+      puts "Object '#{object_name}' deleted."
+    else
+      puts "Object '#{object_name}' not deleted."
+    end
     begin
       puts "Downloading #{table}"
       copy_command = "COPY (SELECT #{table.columns_for_copy} FROM #{table.name}) TO STDOUT WITH DELIMITER '|'"
@@ -130,7 +171,13 @@ class PostgresToRedshift
 
   def upload_table(table, buffer, chunk)
     puts "Uploading #{table.target_table_name}.#{chunk}"
-    bucket.objects["export/#{table.target_table_name}.psv.gz.#{chunk}"].write(buffer, acl: :authenticated_read)
+    if object_uploaded?(ENV['S3_DATABASE_EXPORT_BUCKET'], "export/#{table.target_table_name}.psv.gz.#{chunk}", buffer)
+      puts "Object '#{object_key}' uploaded to bucket '#{bucket_name}'."
+    else
+      puts "Object '#{object_key}' uploaded to bucket '#{bucket_name}'. " \
+        'Program will stop.'
+      exit 1
+    end
   end
 
   def import_table(table)
