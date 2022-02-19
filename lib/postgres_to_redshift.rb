@@ -86,7 +86,7 @@ class PostgresToRedshift
   end
 
   def bucket_objects
-    bucket_objects = s3_client.list_objects_v2(
+    bucket_objects = s3.list_objects_v2(
       bucket: ENV['S3_DATABASE_EXPORT_BUCKET'],
       max_keys: 500
     ).contents
