@@ -1,7 +1,7 @@
 require "postgres_to_redshift/version"
 require 'pg'
 require 'uri'
-require 'aws-sdk-v1'
+require 'aws-sdk-s3'
 require 'zlib'
 require 'tempfile'
 require "postgres_to_redshift/table"
@@ -81,7 +81,8 @@ class PostgresToRedshift
   end
 
   def s3
-    s3 = AWS::S3.new
+    region = 'us-east-1'
+    s3 = AWS::S3::Client.new(region: region, credentials: Aws::Credentials.new(ENV['S3_DATABASE_EXPORT_ID'], ENV['S3_DATABASE_EXPORT_KEY']))
   end
 
   def bucket
