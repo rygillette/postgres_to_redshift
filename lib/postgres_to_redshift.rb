@@ -82,7 +82,7 @@ class PostgresToRedshift
 
   def s3
     region = 'us-east-1'
-    s3 = AWS::S3::Client.new(region: region, credentials: Aws::Credentials.new(ENV['S3_DATABASE_EXPORT_ID'], ENV['S3_DATABASE_EXPORT_KEY']))
+    s3 = Aws::S3::Client.new(region: region, credentials: Aws::Credentials.new(ENV['S3_DATABASE_EXPORT_ID'], ENV['S3_DATABASE_EXPORT_KEY']))
   end
 
   def bucket
