@@ -81,7 +81,7 @@ class PostgresToRedshift
   end
 
   def s3
-    region = 'us-east-1'
+    region = ENV['S3_REGION']
     s3 = Aws::S3::Client.new(region: region, credentials: Aws::Credentials.new(ENV['S3_DATABASE_EXPORT_ID'], ENV['S3_DATABASE_EXPORT_KEY']))
   end
 
