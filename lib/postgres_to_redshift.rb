@@ -85,8 +85,11 @@ class PostgresToRedshift
     s3 = Aws::S3::Client.new(region: region, credentials: Aws::Credentials.new(ENV['S3_DATABASE_EXPORT_ID'], ENV['S3_DATABASE_EXPORT_KEY']))
   end
 
-  def bucket
-    @bucket ||= s3.buckets[ENV['S3_DATABASE_EXPORT_BUCKET']]
+  def bucket_objects
+    bucket_objects = s3_client.list_objects_v2(
+      bucket: ENV['S3_DATABASE_EXPORT_BUCKET'],
+      max_keys: 500
+    ).contents
   end
 
   def copy_table(table)
@@ -94,7 +97,7 @@ class PostgresToRedshift
     zip = Zlib::GzipWriter.new(tmpfile)
     chunksize = 5 * GIGABYTE # uncompressed
     chunk = 1
-    bucket.objects.with_prefix("export/#{table.target_table_name}.psv.gz").delete_all
+    bucket_objects.with_prefix("export/#{table.target_table_name}.psv.gz").delete_all
     begin
       puts "Downloading #{table}"
       copy_command = "COPY (SELECT #{table.columns_for_copy} FROM #{table.name}) TO STDOUT WITH DELIMITER '|'"
