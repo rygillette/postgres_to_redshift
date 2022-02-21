@@ -134,7 +134,7 @@ class PostgresToRedshift
   def copy_table(table)
     tmpfile = Tempfile.new("psql2rs")
     zip = Zlib::GzipWriter.new(tmpfile)
-    chunksize = 5 * GIGABYTE # uncompressed
+    chunksize = 1 * GIGABYTE # uncompressed
     chunk = 1
     object_name = "export/#{table.target_table_name}.psv.gz"
     if object_deleted?(ENV['S3_DATABASE_EXPORT_BUCKET'], object_name)
