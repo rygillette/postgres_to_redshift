@@ -22,13 +22,9 @@ class PostgresToRedshift
     update_tables = PostgresToRedshift.new
 
     update_tables.tables.each do |table|
-      puts "CREATE TABLE IF NOT EXISTS #{schema}.#{target_connection.quote_ident(table.target_table_name)} (#{table.columns_for_create})"
       target_connection.exec("CREATE TABLE IF NOT EXISTS #{schema}.#{target_connection.quote_ident(table.target_table_name)} (#{table.columns_for_create})")
-      puts "Table created"
       update_tables.copy_table(table)
-      puts "Table copied"
       update_tables.import_table(table)
-      puts "Table imported"
     end
   end
 
@@ -70,7 +66,7 @@ class PostgresToRedshift
   end
 
   def tables
-    source_connection.exec("SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_type in ('BASE TABLE', 'VIEW')").map do |table_attributes|
+    source_connection.exec("SELECT * FROM information_schema.tables WHERE table_schema = 'public' AND table_type in ('BASE TABLE') AND table_name NOT IN ('#{ENV['SKIP_TABLES']}')").map do |table_attributes|
       table = Table.new(attributes: table_attributes)
       next if table.name =~ /^pg_/
       table.columns = column_definitions(table)
